@@ -1,0 +1,17 @@
+.convert {
+    &__container {
+        display: flex;
+
+        .content {
+            padding: 20px;
+        }
+    }
+
+    &__list-content {
+        width: 70%;
+    }
+
+    &__convertation {
+        width: 30%;
+    }
+}

@@ -1,0 +1,52 @@
+<form [formGroup]="actionsForm" class="actions__form">
+    <div class="actions__row">
+        <mat-form-field appearance="fill" class="actions__row-item">
+            <mat-label>From currency</mat-label>
+            <mat-select formControlName="from">
+                <mat-option
+                    *ngFor="let currency of currencies"
+                    [value]="currency.id"
+                    (onSelectionChange)="changeCurrency($event, 'from')">
+                    {{ currency.value }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="fill" class="actions__row-item">
+            <mat-label>To currency</mat-label>
+            <mat-select formControlName="to">
+                <mat-option
+                    *ngFor="let currency of currencies"
+                    [value]="currency.id"
+                    (onSelectionChange)="changeCurrency($event, 'to')">
+                    {{ currency.value }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    
+    <div class="actions__row">
+        <mat-form-field appearance="fill" class="actions__row-item">
+            <mat-label>Enter a date range</mat-label>
+            <mat-date-range-input [rangePicker]="rangePicker" [max]="today">
+                <input matStartDate formControlName="startDate" placeholder="Start date">
+                <input matEndDate formControlName="endDate" placeholder="End date">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangePicker>
+                <mat-date-range-picker-actions>
+                    <button mat-button matDateRangePickerCancel>Cancel</button>
+                    <button
+                        mat-raised-button
+                        color="primary"
+                        (click)="selectDate()"
+                        matDateRangePickerApply>
+                        Apply
+                    </button>
+                </mat-date-range-picker-actions>
+            </mat-date-range-picker>
+        </mat-form-field>
+    
+        <button mat-raised-button color="warn" (click)="setDefaultSettings()">Clear filters</button>
+    </div>
+</form>

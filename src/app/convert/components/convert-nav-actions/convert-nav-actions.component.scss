@@ -1,0 +1,19 @@
+.actions {
+    &__form {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+
+        button {
+            margin-bottom: 1.34375em;
+        }
+
+        &-item {
+            margin-right: 15px;
+        }
+    }
+}

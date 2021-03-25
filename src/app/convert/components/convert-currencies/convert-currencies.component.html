@@ -1,0 +1,49 @@
+<form [formGroup]="form" class="convert__content">
+    <mat-form-field appearance="fill">
+        <mat-label>From currency</mat-label>
+        <mat-select
+            formControlName="from">
+            <mat-option
+                *ngFor="let currency of currencies"
+                [value]="currency.id">
+                {{ currency.value }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>To currency</mat-label>
+        <mat-select
+            formControlName="to">
+            <mat-option
+                *ngFor="let currency of currencies"
+                [value]="currency.id">
+                {{ currency.value }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill">
+        <mat-label>Amount</mat-label>
+        <input
+            formControlName="amount"
+            matInput
+            type="number"
+            value="convertSettings.amount"
+            class="example-right-align">
+    </mat-form-field>
+    
+    <button mat-raised-button color="primary" (click)="convertCurrencies()">Convert</button>
+</form>
+
+<div class="convert__result" *ngIf="rates">
+    <span>
+        {{ params.amount }}
+        {{ params.from }}
+    </span>
+    =
+    <span>
+        {{ rates[params.to] }}
+        {{ params.to }}
+    </span>
+</div>

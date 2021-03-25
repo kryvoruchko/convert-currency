@@ -1,0 +1,12 @@
+.convert {
+    &__content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__result {
+        text-align: center;
+        padding-top: 15px;
+        color: blue;
+    }
+}
