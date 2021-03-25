@@ -8,6 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSortModule } from '@angular/material/sort';
 
 @NgModule({
   declarations: [],
@@ -21,6 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatDatepickerModule,
     MatNativeDateModule,
     MatIconModule,
+    MatSortModule,
   ],
   exports: [
     MatSelectModule,
@@ -31,6 +33,7 @@ import { MatIconModule } from '@angular/material/icon';
     MatDatepickerModule,
     MatNativeDateModule,
     MatIconModule,
+    MatSortModule,
   ]
 })
 export class SharedModule { }

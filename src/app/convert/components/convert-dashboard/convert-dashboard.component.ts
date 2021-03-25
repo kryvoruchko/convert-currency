@@ -8,7 +8,6 @@ import { IConvertResponse } from '../../interfaces/convert-response.interface';
 import { IRequestSettings } from '../../interfaces/currencies-request-settings.interface';
 import { ICurrency } from '../../interfaces/currency.interface';
 import { ConvertService } from '../../services/convert.service';
-import { GroupBy } from '../currencies-list/currencies-list.component';
 
 @Component({
   selector: 'app-convert-dashboard',
@@ -16,8 +15,8 @@ import { GroupBy } from '../currencies-list/currencies-list.component';
   styleUrls: ['./convert-dashboard.component.scss']
 })
 export class ConvertDashboardComponent implements OnInit, OnDestroy {
-  public data: Observable<(ICurrency | GroupBy)[]> = of();
-  public columns: string[] = [];
+  public data: Observable<(ICurrency)[]> = of([]);
+  public columns: string[] = ['id', 'value'];
   public filters: IRequestSettings;
 
   private subscriptions: Subscription = new Subscription();
@@ -33,12 +32,17 @@ export class ConvertDashboardComponent implements OnInit, OnDestroy {
 
   public changeFilters(filters): void {
     this.filters = filters;
+
     (filters.startDate || filters.endDate) ?
       this.getCurrenciesByDate(filters) :
       this.getLatestData(filters);
   }
 
   private getLatestData(filters: IConvertParams): void {
+    if (this.columns.length === 3) {
+      this.columns.slice(-1, 1);
+    }
+
     this.subscriptions.add(
       this.convertService.getLatest(filters)
         .subscribe(data => {
@@ -51,33 +55,28 @@ export class ConvertDashboardComponent implements OnInit, OnDestroy {
     let dateLink = `${filters.startDate}`;
     if (filters.endDate) {
       dateLink = `${dateLink}..${filters.endDate}`
+      if (this.columns.length !== 3) {
+        this.columns = [...this.columns, 'date'];
+      }
     }
 
     this.subscriptions.add(
       this.convertService.getCurrenciesByDate(dateLink, { from: filters.from, to: filters.to })
         .subscribe(data => {
-          this.filters.endDate ?
-            this.createDateWithGroup(data.rates):
-            this.createData(data.rates);
+          this.createData(data.rates);
         })
     );
   }
 
   private createData(data: IConvertResponse): void {
     const items = [];
-    for (let k in data) {
-      items.push({ id: k, value: data[k] });
-    }
-    this.data = of(items);
-  }
-
-  private createDateWithGroup(data: IConvertResponse): void {
-    const items = [];
     for (let key in data) {
-      items.push({ initial: key, isGroupBy: true });
-      
-      for (let subKey in data[key]) {
-        items.push({ id: subKey, value: data[key][subKey] });
+      if (typeof data[key] === 'object') {
+        for (let subKey in data[key]) {
+          items.push({ id: subKey, value: data[key][subKey], date: key });
+        }
+      } else {
+        items.push({ id: key, value: data[key] });
       }
     }
     this.data = of(items);

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatOptionSelectionChange } from '@angular/material/core';
 import { select, Store } from '@ngrx/store';
@@ -73,8 +73,13 @@ export class ConvertNavActionsComponent implements OnInit, OnDestroy {
   }
 
   public selectDate(): void {
-    const start = this.actionsForm.value['startDate'] && new Date(this.actionsForm.value['startDate']).toISOString().slice(0,10);
-    const end = this.actionsForm.value['endDate'] && new Date(this.actionsForm.value['endDate']).toISOString().slice(0,10);
+    const start =
+      this.actionsForm.value['startDate'] &&
+      new Date(this.actionsForm.value['startDate']).toISOString().slice(0,10);
+
+    const end =
+      this.actionsForm.value['endDate'] &&
+      new Date(this.actionsForm.value['endDate']).toISOString().slice(0,10);
 
     this.store.dispatch(new SetCurrencySettingsDate(
       {

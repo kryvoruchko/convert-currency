@@ -5,10 +5,13 @@
         </app-convert-nav-actions>
 
         <app-currencies-list
-            [data]="data">
+            [data]="data | async"
+            [displayedColumns]="columns">
         </app-currencies-list>
     </div>
+
     <div class="convert__convertation content">
-        <app-convert-currencies></app-convert-currencies>
+        <app-convert-currencies>
+        </app-convert-currencies>
     </div>
 </div>

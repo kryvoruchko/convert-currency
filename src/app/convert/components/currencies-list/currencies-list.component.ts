@@ -1,28 +1,45 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import {
+  Component,
+  Input,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
+import { MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 import { ICurrency } from '../../interfaces/currency.interface';
-
-export interface GroupBy {
-  initial: string;
-  isGroupBy: boolean;
-}
 
 @Component({
   selector: 'app-currencies-list',
   templateUrl: './currencies-list.component.html',
   styleUrls: ['./currencies-list.component.scss']
 })
-export class CurrenciesListComponent implements OnInit {
-  @Input() data: Observable<(ICurrency | GroupBy)[]>;
+export class CurrenciesListComponent implements OnInit, OnChanges {
+  @ViewChild(MatSort) sort: MatSort;
 
-  public displayedColumns: string[] = ['id', 'value'];
+  @Input() data: (ICurrency)[];
+  @Input() displayedColumns: string[] = [];
+
   public columnsToDisplay: string[] = this.displayedColumns.slice();
+  public dataSource = new MatTableDataSource([]);
 
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  }
 
-  public isGroup(index, item): boolean{
-    return item.isGroupBy;
+  ngOnChanges(changes: SimpleChanges) {
+    if (
+      changes['displayedColumns'] &&
+      changes['displayedColumns'].currentValue
+    ) {
+      this.columnsToDisplay = this.displayedColumns.slice();
+    }
+
+    if (changes['data'] && changes['data'].currentValue) {
+      this.dataSource.data = changes['data'].currentValue;
+      this.dataSource.sort = this.sort;
+    }
   }
 }
