@@ -1,18 +1,17 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MatOptionSelectionChange } from '@angular/material/core';
-import { select, Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { Observable, of, Subject } from 'rxjs';
 import { DEFAULT_FROM_CURRENCY } from 'src/app/core/constants/convert.constants';
 import {
-  ClearCurrencySettings,
-  SetCurrencySettingsDate,
-  SetFromCurrency,
-  SetToCurrency
+  clearCurrencySettings,
+  setCurrencySettingsDate,
+  setFromCurrency,
+  setToCurrency
 } from 'src/app/store/actions/convert.actions';
-import { getCurrenciesList, getConvertSetttings } from 'src/app/store/selectors/convert.selector';
+import { getCurrenciesList } from 'src/app/store/selectors/convert.selector';
 import { IAppState } from 'src/app/store/state/app.state';
-import { IRequestSettings } from '../../interfaces/currencies-request-settings.interface';
 import { ICurrency } from '../../interfaces/currency.interface';
 
 @Component({
@@ -21,9 +20,7 @@ import { ICurrency } from '../../interfaces/currency.interface';
   styleUrls: ['./convert-nav-actions.component.scss']
 })
 export class ConvertNavActionsComponent implements OnInit, OnDestroy {
-  @Output() onChangeFilters: EventEmitter<IRequestSettings> = new EventEmitter<IRequestSettings>();
-
-  public currencies: ICurrency[] = [{ id: '', value: 'None' }];
+  public currencies$: Observable<ICurrency[]> = of([]);
   public today = new Date();
   public actionsForm = this.fb.group({
     startDate: [null],
@@ -32,7 +29,7 @@ export class ConvertNavActionsComponent implements OnInit, OnDestroy {
     to: [''],
   });
 
-  private subscriptions: Subscription = new Subscription();
+  private notifier = new Subject();
 
   constructor(
     private fb: FormBuilder,
@@ -40,19 +37,7 @@ export class ConvertNavActionsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.store.pipe(select(getCurrenciesList))
-        .subscribe(currencies => { 
-          this.currencies = this.currencies.concat(currencies);
-        })
-    );
-
-    this.subscriptions.add(
-      this.store.pipe(select(getConvertSetttings))
-        .subscribe(settings => {
-          this.onChangeFilters.emit(settings);
-        })
-    );
+    this.currencies$ = this.store.select(getCurrenciesList);
   }
 
   public changeCurrency(val: MatOptionSelectionChange, mode: string): void {
@@ -61,10 +46,10 @@ export class ConvertNavActionsComponent implements OnInit, OnDestroy {
 
       switch(mode) {
         case 'from':
-          this.store.dispatch(new SetFromCurrency(val.source.value));
+          this.store.dispatch(setFromCurrency({ from: val.source.value }));
           break;
         case 'to':
-          this.store.dispatch(new SetToCurrency(val.source.value));
+          this.store.dispatch(setToCurrency({ to: val.source.value }));
           break;
         default:
           break;
@@ -81,9 +66,8 @@ export class ConvertNavActionsComponent implements OnInit, OnDestroy {
       this.actionsForm.value['endDate'] &&
       new Date(this.actionsForm.value['endDate']).toISOString().slice(0,10);
 
-    this.store.dispatch(new SetCurrencySettingsDate(
+    this.store.dispatch(setCurrencySettingsDate(
       {
-        ...this.actionsForm.value,
         startDate: start,
         endDate: end
       }
@@ -98,10 +82,11 @@ export class ConvertNavActionsComponent implements OnInit, OnDestroy {
       to: '',
     });
 
-    this.store.dispatch(new ClearCurrencySettings());
+    this.store.dispatch(clearCurrencySettings());
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
+    this.notifier.next()
+    this.notifier.complete()
   }
 }

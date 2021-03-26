@@ -4,7 +4,7 @@
             <mat-label>From currency</mat-label>
             <mat-select formControlName="from">
                 <mat-option
-                    *ngFor="let currency of currencies"
+                    *ngFor="let currency of (currencies$ | async)"
                     [value]="currency.id"
                     (onSelectionChange)="changeCurrency($event, 'from')">
                     {{ currency.value }}
@@ -16,7 +16,7 @@
             <mat-label>To currency</mat-label>
             <mat-select formControlName="to">
                 <mat-option
-                    *ngFor="let currency of currencies"
+                    *ngFor="let currency of (currencies$ | async)"
                     [value]="currency.id"
                     (onSelectionChange)="changeCurrency($event, 'to')">
                     {{ currency.value }}

@@ -13,7 +13,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 @Injectable()
 export class ErrorInterceptorInterceptor implements HttpInterceptor {
   constructor(
-    private _snackBar: MatSnackBar
+    private snackBar: MatSnackBar
   ) {}
   intercept(
     request: HttpRequest<unknown>,
@@ -22,7 +22,7 @@ export class ErrorInterceptorInterceptor implements HttpInterceptor {
 
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        this._snackBar.open('Something went wrong!', null,
+        this.snackBar.open('Something went wrong!', null,
           {
             duration: 2000,
             verticalPosition: 'top',

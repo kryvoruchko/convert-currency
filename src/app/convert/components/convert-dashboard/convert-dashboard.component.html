@@ -1,11 +1,10 @@
 <div class="convert__container">
     <div class="convert__list-content content">
-        <app-convert-nav-actions
-            (onChangeFilters)="changeFilters($event)">
+        <app-convert-nav-actions>
         </app-convert-nav-actions>
 
         <app-currencies-list
-            [data]="data | async"
+            [data]="data$ | async"
             [displayedColumns]="columns">
         </app-currencies-list>
     </div>

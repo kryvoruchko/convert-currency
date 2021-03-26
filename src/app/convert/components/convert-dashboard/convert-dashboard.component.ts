@@ -1,13 +1,15 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable, of, Subscription } from 'rxjs';
-import { GetCurrenciesList } from 'src/app/store/actions/convert.actions';
+import { Observable, of, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { getCurrenciesList } from 'src/app/store/actions/convert.actions';
+import { getConvertSetttings } from 'src/app/store/selectors/convert.selector';
 import { IAppState } from 'src/app/store/state/app.state';
-import { IConvertParams } from '../../interfaces/convert-params.interface';
 import { IConvertResponse } from '../../interfaces/convert-response.interface';
 import { IRequestSettings } from '../../interfaces/currencies-request-settings.interface';
 import { ICurrency } from '../../interfaces/currency.interface';
 import { ConvertService } from '../../services/convert.service';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-convert-dashboard',
@@ -15,74 +17,71 @@ import { ConvertService } from '../../services/convert.service';
   styleUrls: ['./convert-dashboard.component.scss']
 })
 export class ConvertDashboardComponent implements OnInit, OnDestroy {
-  public data: Observable<(ICurrency)[]> = of([]);
+  public data$: Observable<(ICurrency)[]> = of([]);
   public columns: string[] = ['id', 'value'];
   public filters: IRequestSettings;
 
-  private subscriptions: Subscription = new Subscription();
+  private notifier = new Subject();
 
   constructor(
     private store: Store<IAppState>,
     private readonly convertService: ConvertService,
   ) {
-    this.store.dispatch(new GetCurrenciesList());
+    this.store.dispatch(getCurrenciesList());
   }
 
-  ngOnInit(): void {}
-
-  public changeFilters(filters): void {
-    this.filters = filters;
-
-    (filters.startDate || filters.endDate) ?
-      this.getCurrenciesByDate(filters) :
-      this.getLatestData(filters);
+  ngOnInit(): void {
+    this.store.select(getConvertSetttings)
+      .pipe(takeUntil(this.notifier))
+      .subscribe(settings => {
+        this.filters = settings;
+        (this.filters.startDate || this.filters.endDate) ?
+          this.getCurrenciesByDate() :
+          this.getLatestData();
+      })
   }
 
-  private getLatestData(filters: IConvertParams): void {
+  private getLatestData(): void {
     if (this.columns.length === 3) {
       this.columns.slice(-1, 1);
     }
 
-    this.subscriptions.add(
-      this.convertService.getLatest(filters)
-        .subscribe(data => {
-          this.createData(data.rates);
-        })
-    );
+    this.convertService.getLatest(this.filters)
+      .pipe(takeUntil(this.notifier))
+      .subscribe(data => {
+        this.createData(data.rates);
+      });
   }
 
-  private getCurrenciesByDate(filters: IRequestSettings): void {
-    let dateLink = `${filters.startDate}`;
-    if (filters.endDate) {
-      dateLink = `${dateLink}..${filters.endDate}`
+  private getCurrenciesByDate(): void {
+    let dateLink = `${this.filters.startDate}`;
+    if (this.filters.endDate) {
+      dateLink = `${dateLink}..${this.filters.endDate}`;
+
       if (this.columns.length !== 3) {
         this.columns = [...this.columns, 'date'];
       }
     }
 
-    this.subscriptions.add(
-      this.convertService.getCurrenciesByDate(dateLink, { from: filters.from, to: filters.to })
-        .subscribe(data => {
-          this.createData(data.rates);
-        })
-    );
+    this.convertService.getCurrenciesByDate(dateLink, { from: this.filters.from, to: this.filters.to })
+      .pipe(takeUntil(this.notifier))
+      .subscribe(data => {
+        this.createData(data.rates);
+      });
   }
 
   private createData(data: IConvertResponse): void {
-    const items = [];
-    for (let key in data) {
-      if (typeof data[key] === 'object') {
-        for (let subKey in data[key]) {
-          items.push({ id: subKey, value: data[key][subKey], date: key });
-        }
-      } else {
-        items.push({ id: key, value: data[key] });
+    const arr = _.map(data, (value, key) => {
+      if (_.isPlainObject(value)) {
+        return _.map(value, (val, id) => ({ id, value: val, date: key }));
       }
-    }
-    this.data = of(items);
+      return { id: key, value };
+    });
+    this.data$ = of(_.flattenDeep(arr));
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
+    this.notifier.next()
+    this.notifier.complete()
   }
 }

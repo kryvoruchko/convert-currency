@@ -1,7 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
-import { Subscription } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { getCurrenciesList } from 'src/app/store/selectors/convert.selector';
 import { IAppState } from 'src/app/store/state/app.state';
 import { IConvertParams } from '../../interfaces/convert-params.interface';
@@ -21,9 +22,9 @@ export class ConvertCurrenciesComponent implements OnInit, OnDestroy {
     to: ['', [Validators.required]],
   });
   public params: IConvertParams;
-  public currencies: ICurrency[] = [];
+  public currencies$: Observable<ICurrency[]> = of([]);
 
-  private subscriptions: Subscription = new Subscription();
+  private notifier = new Subject();
 
   constructor(
     private convertService: ConvertService,
@@ -32,26 +33,23 @@ export class ConvertCurrenciesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.store.pipe(select(getCurrenciesList))
-        .subscribe(currencies => { this.currencies = currencies })
-    );
+    this.currencies$ = this.store.pipe(select(getCurrenciesList));
   }
 
   public convertCurrencies(): void {
     if (this.form.valid) {
       this.params = this.form.value;
 
-      this.subscriptions.add(
-        this.convertService.getLatest(this.params)
-          .subscribe(response => {
-            this.rates = response.rates;
-          })
-      );
+      this.convertService.getLatest(this.params)
+        .pipe(takeUntil(this.notifier))
+        .subscribe(response => {
+          this.rates = response.rates;
+        })
     }
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
+    this.notifier.next();
+    this.notifier.complete();
   }
 }
