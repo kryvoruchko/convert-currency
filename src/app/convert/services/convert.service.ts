@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { IConvertParams } from '../interfaces/convert-params.interface';
@@ -12,23 +11,22 @@ import * as _ from 'lodash';
   providedIn: 'root'
 })
 export class ConvertService {
-  private url = environment.apiURL;
 
   constructor(
     private readonly http: HttpClient,
   ) { }
 
   public getCurrencies(): Observable<ICurencyRequest[]> {
-    return this.http.get<ICurencyRequest[]>(`${this.url}/currencies`);
+    return this.http.get<ICurencyRequest[]>(`/currencies`);
   }
 
   public getLatest(filters: IConvertParams): Observable<IConvertResponse> {
     const params = _.pickBy(filters, _.identity);
-    return this.http.get<IConvertResponse>(`${this.url}/latest`, { params });
+    return this.http.get<IConvertResponse>(`/latest`, { params });
   }
 
   public getCurrenciesByDate(date: string, filters?: IRequestSettings): Observable<IConvertResponse> {
     const params = _.pickBy(filters, _.identity);
-    return this.http.get<IConvertResponse>(`${this.url}/${date}`, { params });
+    return this.http.get<IConvertResponse>(`/${date}`, { params });
   }
 }

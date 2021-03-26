@@ -12,6 +12,7 @@ import { StoreRouterConnectingModule } from '@ngrx/router-store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { ConvertEffects } from './store/effects/convert.effects';
 import { ErrorInterceptorInterceptor } from './core/interceptors/error-interceptor.interceptor';
+import { ApiPrefixInterceptor } from './core/interceptors/api-prefix.interceptor';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,11 @@ import { ErrorInterceptorInterceptor } from './core/interceptors/error-intercept
 		StoreDevtoolsModule.instrument(),
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ApiPrefixInterceptor,
+      multi: true,
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ErrorInterceptorInterceptor,
